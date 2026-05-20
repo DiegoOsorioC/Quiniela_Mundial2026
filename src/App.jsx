@@ -83,7 +83,18 @@ function MundialDraftApp() {
       setAssignments([]);
       return;
     }
-    const shuffledTeams = shuffle(teams);
+    const shuffledTeams = [...teams].sort(
+      () => Math.random() - 0.5
+    );
+
+    // Cantidad EXACTA para cada participante
+    const teamsPerPerson = Math.floor(
+      teams.length / people.length
+    );
+
+    // Máximo total que se puede asignar
+    const maxAssigned =
+      teamsPerPerson * people.length;
 
     const assignments = people.map((person) => ({
       person,
@@ -91,33 +102,53 @@ function MundialDraftApp() {
       groups: new Set(),
     }));
 
-    const maxTeams = Math.floor(teams.length / people.length);
-    const extraTeams = teams.length % people.length;
+    const unassigned = [];
 
     shuffledTeams.forEach((team) => {
-      const sortedCandidates = [...assignments]
-        .filter((p, index) => {
-          const limit = index < extraTeams ? maxTeams + 1 : maxTeams;
-          return p.teams.length < limit;
-        })
-        .sort((a, b) => {
-          const aHasGroup = a.groups.has(team.group) ? 1 : 0;
-          const bHasGroup = b.groups.has(team.group) ? 1 : 0;
+      // Total actualmente asignado
+      const currentAssigned = assignments.reduce(
+        (acc, curr) => acc + curr.teams.length,
+        0
+      );
 
-          if (aHasGroup !== bHasGroup) {
-            return aHasGroup - bHasGroup;
-          }
+      // Si ya se alcanzó el límite
+      if (currentAssigned >= maxAssigned) {
+        unassigned.push(team);
+        return;
+      }
 
-          return a.teams.length - b.teams.length;
-        });
+      // Participantes con espacio disponible
+      let candidates = assignments.filter(
+        (a) => a.teams.length < teamsPerPerson
+      );
 
-      const bestScore = sortedCandidates[0];
+      // Intentar evitar grupos repetidos
+      let selected = candidates.find(
+        (a) => !a.groups.has(team.group)
+      );
 
-      bestScore.teams.push(team);
-      bestScore.groups.add(team.group);
+      // Si no existe uno ideal, usar cualquiera disponible
+      if (!selected && candidates.length > 0) {
+        selected = candidates[0];
+      }
+
+      if (selected) {
+        selected.teams.push(team);
+        selected.groups.add(team.group);
+      } else {
+        unassigned.push(team);
+      }
     });
 
-    setAssignments(assignments);
+    // Agregar sección sobrante
+    setAssignments([
+      ...assignments,
+      {
+        person: "Sin asignar",
+        teams: unassigned,
+        unassigned: true,
+      },
+    ]);
   }
 
   function addPerson() {
@@ -192,7 +223,10 @@ function MundialDraftApp() {
           {assignments.map((entry) => (
             <div
               key={entry.person}
-              className="bg-white rounded-3xl shadow-lg p-6 border border-zinc-200"
+              className={`rounded-3xl shadow-lg p-6 border ${entry.unassigned
+                  ? "bg-red-50 border-red-300"
+                  : "bg-white border-zinc-200"
+                }`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">{entry.person}</h2>
