@@ -223,14 +223,31 @@ function MundialDraftApp() {
           {assignments.map((entry) => (
             <div
               key={entry.person}
-              className={`rounded-3xl shadow-lg p-6 border ${entry.unassigned
-                  ? "bg-red-50 border-red-300"
-                  : "bg-white border-zinc-200"
+              className={`rounded-3xl shadow-2xl p-6 border ${entry.unassigned
+                ? "bg-red-100 border-red-400"
+                : "bg-zinc-100 border-zinc-300"
                 }`}
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">{entry.person}</h2>
-                <span className="bg-black text-white px-3 py-1 rounded-full text-sm">
+              <div
+                className={`flex items-center justify-between mb-5 px-4 py-3 rounded-2xl ${entry.unassigned
+                  ? "bg-red-200"
+                  : "bg-zinc-800"
+                  }`}
+              >
+                <h2
+                  className={`text-2xl font-black tracking-wide ${entry.unassigned
+                    ? "text-red-900"
+                    : "text-white"
+                    }`}
+                >
+                  {entry.person}
+                </h2>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${entry.unassigned
+                      ? "bg-red-700 text-white"
+                      : "bg-white text-zinc-900"
+                    }`}
+                >
                   {entry.teams.length} selecciones
                 </span>
               </div>
